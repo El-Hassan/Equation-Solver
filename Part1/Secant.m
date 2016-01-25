@@ -1,0 +1,52 @@
+function [ xi, ei , conv, time ] = Secant( fun ,x1,x2 ,es,maxit )
+clear axes ;
+f=eval(strcat('@(x)',fun));
+fplot(f,[x1-10,x2+10]);
+y1=get(gca,'ylim');
+hold on ;
+pause(1);
+plot(y1,[0,0],'k');
+tic;
+if( f(x1) == 0)
+    conv = 1 ;
+    time = toc;
+    xi(1) = x1;
+    ei(1) = 0 ;
+    return
+elseif(f(x2) == 0)
+    conv = 1 ;
+    time = toc ;
+    xi(1) = x2;
+    ei(1) = 0 ;
+    return 
+end 
+
+it = 0 ;
+temp = 0 ;
+while(1)
+    temp = temp + toc ;
+    pause(1);
+    plot([x1 x1],y1,'r');
+    plot([x2 x2],y1,'g');
+    tic ;
+    it = it+1 ;
+    xtemp = x2;
+    x2 = x2 -((f(x2)*(x2-x1))/(f(x2)-f(x1))) ;
+    x1 = xtemp ;
+    ea = abs((x2-xtemp)/x2) ; 
+    xi(it) = x2;
+    ei(it) = ea ; 
+    
+    
+    if (ea <= es && it < maxit && it>1)
+        conv = 1 ;
+        break
+    elseif(ea > es && it >= maxit)
+        conv = 0 ;
+        break 
+    end
+end
+time = toc+temp ;
+hold off ;
+end
+

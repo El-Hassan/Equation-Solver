@@ -1,0 +1,60 @@
+function [relativeError,x,flag,time]=newtonRaphson (func,dfunc,intialGuess ,epslon,maxItr)
+eps=epslon;
+flag = 1 ;
+maxIt=maxItr;
+x(1)=intialGuess;
+relativError(1)=1;
+tic;
+
+for i=2:maxIt
+    dif=dfunc(x(i-1));
+    if(dif==0)
+     %   disp('this function cant be calculated using newton raphson method')
+        flag=0;
+        time = toc ;
+        relativeError=zeros (1,50);
+        return ;
+    end
+    tempF=func(x(i-1));
+    x(i)=x(i-1)-(tempF/dif);
+    relativeError(i)=abs((x(i)-(x(i-1)))/(x(i)));
+    if(tempF==0 ||  relativeError(i)<eps)
+       % disp('an exact root has been found');
+       relativeError(1)=100;
+        break;
+    end
+end
+
+%plot the function
+hold on
+drawRange=linspace(intialGuess-10,x(i)+10,110);
+for s=1:length(drawRange)
+       drawfunc(s)=func(drawRange(s));
+       xaxis(s)=0;
+end
+plot(drawRange,drawfunc,'r');
+%plot(drawRange,xaxis,'g');
+temp=0 ;
+for s=1:length(x)
+    temp1=[x(s),x(s),x(s)];
+    temp2=[0,100,-100];
+    temp = temp + toc ;
+    plot(temp1,temp2);
+    pause(1);
+    tic ;
+end
+
+%
+if(i>=maxItr & abs((x(i)-x(i-1))/x(i))>eps)
+    %disp('no accurate root can be found with this number of itrations and accurcy');
+    flag=0;
+    time = toc ;
+    return;
+end
+%relativeError
+%x
+hold off ;
+time=temptoc;
+
+
+    

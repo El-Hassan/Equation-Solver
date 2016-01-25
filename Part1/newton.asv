@@ -1,0 +1,13 @@
+initialGuess = 0 ;
+epslon = 0.005;
+maxItr=50;
+funct = 'x^2-'
+
+function [ relativeError, x, flag, time]=newton(intialGuess,epslon,maxItr,funct)
+syms x;
+func=funct;
+f=inline(func);
+dfunc=diff(func);
+df=inline(dfunc);
+[relativeError, x, flag ,time]=newtonRaphson(f,df,intialGuess,epslon,maxItr);
+

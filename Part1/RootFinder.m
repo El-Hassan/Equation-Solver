@@ -1,0 +1,279 @@
+function varargout = RootFinder(varargin)
+
+gui_Singleton = 1;
+gui_State = struct('gui_Name',       mfilename, ...
+                   'gui_Singleton',  gui_Singleton, ...
+                   'gui_OpeningFcn', @RootFinder_OpeningFcn, ...
+                   'gui_OutputFcn',  @RootFinder_OutputFcn, ...
+                   'gui_LayoutFcn',  [] , ...
+                   'gui_Callback',   []);
+if nargin && ischar(varargin{1})
+    gui_State.gui_Callback = str2func(varargin{1});
+end
+
+if nargout
+    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+else
+    gui_mainfcn(gui_State, varargin{:});
+end
+% End initialization code - DO NOT EDIT
+
+% --- Executes just before RootFinder is made visible.
+function RootFinder_OpeningFcn(hObject, eventdata, handles, varargin)
+handles.output = hObject;
+guidata(hObject, handles);
+
+
+
+function varargout = RootFinder_OutputFcn(hObject, eventdata, handles) 
+varargout{1} = handles.output;
+
+    
+function x1_Callback(hObject, eventdata, handles)
+function x1_CreateFcn(hObject, eventdata, handles)
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+function l_Callback(hObject, eventdata, handles)
+function l_CreateFcn(hObject, eventdata, handles)
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function u_Callback(hObject, eventdata, handles)
+function u_CreateFcn(hObject, eventdata, handles)
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+function x0_Callback(hObject, eventdata, handles)
+function x0_CreateFcn(hObject, eventdata, handles)
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function func_Callback(hObject, eventdata, handles)
+function func_CreateFcn(hObject, eventdata, handles)
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+function g_CreateFcn(hObject, eventdata, handles)
+function g_Callback(hObject, eventdata, handles)
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function iterations_Callback(hObject, eventdata, handles)
+function iterations_CreateFcn(hObject, eventdata, handles)
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function pre_Callback(hObject, eventdata, handles)
+function pre_CreateFcn(hObject, eventdata, handles)
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+function ans_CreateFcn(hObject, eventdata, handles)
+function ans_Callback(hObject, eventdata, handles)
+
+
+function readfile_Callback(hObject, eventdata, handles)
+    try
+        id = fopen('function.txt','r');
+        f = fscanf(id,'%s',Inf);
+        set(handles.func,'String',f);
+    catch ME
+        set(handles.ans,'String','File Not Found !');
+    end
+   
+
+
+function findroot_Callback(hObject, eventdata, handles)
+   cla reset;
+    use = get( get(handles.use,'SelectedObject'),'Tag');
+    if(use=='cm')
+        
+        method = get(get(handles.method,'SelectedObject'),'Tag');
+        switch method
+            case 'bisection',
+                bracketing(handles,1);
+            case 'false' ,
+                bracketing(handles,2);
+            case 'fixed' ,
+                fixedPoint(handles);
+            case 'newton' ,
+                newTon(handles);
+            case 'secant' ,
+                secant(handles);
+        end    
+                          
+    elseif(use=='sm')
+          generalMethod(handles);
+    end 
+
+%...................................................................................%
+function generalMethod(handles)
+    solved =newTon(handles);
+    if(solved==0)
+        solved=secant(handles);
+    end
+    if(solved==0)
+        solved=bracketing(handles,2);
+    end
+    if(solved==0)
+        solved=fixedPoint(handles);
+    end
+    
+    if(solved==0)
+        set(handles.ans,'String','Please Enter a valid Function and valid Extra parameters');
+    end
+        
+   
+%********************************** Open Methods ***************************************%  
+function solved= fixedPoint(handles)
+    solved = 1;    
+    if(isempty(get(handles.g,'String')) ||isempty(get(handles.x0,'String')))
+                    set(handles.ans,'String','Please Enter g(x) and x0');
+                    solved = 0 ;
+    else
+                        g = get(handles.g,'String');
+                        x0= str2double(get(handles.x0,'String'));
+                        [pre,ite] =getInfo(handles);
+                        set(handles.func,'String',strcat(g,' +x'));
+                    try
+                        [x,iterations,timeElapsed,prec,flag] = FixedPoint(g,ite,x0,pre);
+                        
+                        if(flag==1)
+                            showResult(handles,x,iterations,timeElapsed,prec);
+                        else
+                            set(handles.ans,'String',sprintf('\n--> Divergence.'));
+                        end
+                    catch M
+                           set(handles.ans,'String',sprintf('\n--> Enter valid Function(s) and Extra parameters'));
+                           solved = 0 ;
+                    end    
+                            
+    end
+
+function solved = newTon(handles)
+    solved = 0 ;
+    if(isempty(get(handles.func,'String')) ||isempty(get(handles.x0,'String')))
+          set(handles.ans,'String','Please Enter F(x) and x0');
+    else
+           f = get(handles.func,'String');
+           x0= str2double(get(handles.x0,'String'));
+           [pre,ite] =getInfo(handles);
+           
+           try
+               [relativeError,x,flag,time]=newton(x0,pre,ite,f);
+              
+               if(flag==0)
+                   set(handles.ans,'String',sprintf('\n--> Divergence.'));
+               else    
+                showResult(handles,x,length(x),time,relativeError);
+                solved = 1 ;
+               end 
+           catch M
+                set(handles.ans,'String',sprintf('\n--> Enter valid Function(s) and Extra parameters'));
+           end    
+                            
+    end
+
+function solved = secant(handles) 
+    
+    solved = 0 ;
+    if(isempty(get(handles.func,'String')) ||isempty(get(handles.x0,'String'))||isempty(get(handles.x1,'String')))
+          set(handles.ans,'String','Please Enter F(x), X0 and X-1');
+    else
+           f = get(handles.func,'String');
+           x_1= str2double(get(handles.x1,'String'));
+           x0= str2double(get(handles.x0,'String'));
+           [pre,ite] =getInfo(handles);
+           
+           try
+               [ x, relativeError , flag, time ] = Secant( f ,x_1,x0 ,pre,ite );
+              
+               if(flag==0)
+                   set(handles.ans,'String',sprintf('\n--> Divergence.'));
+               else    
+                showResult(handles,x,length(x),time,relativeError); 
+                solved = 1 ;
+               end 
+           catch M
+                set(handles.ans,'String',sprintf('\n--> Enter valid Function(s) and Extra parameters'));
+           end    
+                            
+ end
+%***************************************** Bracketing Methods ***********************************************%
+function solved = bracketing(handles,methodNum)
+ 
+ solved = 0 ;
+ if(isempty(get(handles.func,'String'))||isempty(get(handles.l,'String'))||isempty(get(handles.u,'String')))
+           set(handles.ans,'String','Please Enter F(x)and Interval');
+ else
+           f = get(handles.func,'String');
+           start= str2double(get(handles.l,'String'));
+           last= str2double(get(handles.u,'String'));
+           [pre,ite] =getInfo(handles);
+           
+           try
+               if(methodNum==2)
+                    [relativeError,x,flag,time]=falsepos (f,start,last,pre,ite);
+               else
+                   [x,relativeError , flag, time ] = fbisection( f ,start,last ,pre,ite );
+               end
+               
+               if(flag==0)
+                   set(handles.ans,'String',sprintf('\n--> There is No root in this interval with this number of iterations'));
+               else    
+                showResult(handles,x,length(x),time,relativeError); 
+                solved = 1 ;
+               end 
+           catch M
+                set(handles.ans,'String',sprintf('\n--> Enter valid Function(s) and Extra parameters'));
+           end
+ end
+ 
+ 
+%****************************************** Heper Functions *******************************************% 
+function showResult(handles,x,iterations,timeElapsed,prec)
+    
+    result = {};
+    for i=1:iterations ;
+        
+        if(isnan(prec(i)))
+            prec(i)=0;
+        end
+        result{i} = sprintf('i = %d\t Xi = %.10f\t ei = %.10f',i,x(i),prec(i)) ;
+    end
+    result{iterations+1}=sprintf('\n---> Number of Iterations = %d\n',iterations);
+    result{iterations+2}=sprintf('---> Time Elapsed = %f \n',timeElapsed);
+    
+    set(handles.ans,'String',result);
+    
+    
+function[pre,ite] =getInfo(handles)
+    pre = 0.00001 ;
+    ite = 50;
+    if(~isempty(get(handles.pre,'String')))
+           pre = str2double(get(handles.pre,'String'));
+    end    
+    if(~isempty(get(handles.iterations,'String')))
+                  ite = str2num(get(handles.iterations,'String'));  
+    end
+        
